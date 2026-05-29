@@ -1,0 +1,161 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "a53860fd-8ba6-4846-8503-cc8dda9c2e98",
+   "metadata": {},
+   "source": [
+    "import pyautogui\n",
+    "import time\n",
+    "time.sleep(5)\n",
+    "print(pyautogui.position())\n",
+    "pyautogui.alert(\"Posição Registrada\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "69240284-6c35-4e88-adb8-38d566a970b0",
+   "metadata": {},
+   "source": [
+    "## Alerta de faltas por Email"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "2e1b24af-7b1c-45d9-bb73-b7f491a033c5",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Todos os e-mails foram enviados.\n"
+     ]
+    }
+   ],
+   "source": [
+    "import pandas as pd\n",
+    "import pyautogui\n",
+    "import pyperclip\n",
+    "import time\n",
+    "\n",
+    "pyautogui.PAUSE = 1\n",
+    "\n",
+    "# ==========================\n",
+    "# ALERTA\n",
+    "# ==========================\n",
+    "pyautogui.alert(\"Vai começar. Aperte OK e não mexa em nada.\")\n",
+    "\n",
+    "# ==========================\n",
+    "# LER BASES\n",
+    "# ==========================\n",
+    "cadastro = pd.read_excel(r'C:\\RH_Gestao\\Cadastro_Colaboradores.xlsx')\n",
+    "ponto = pd.read_excel(r'C:\\RH_Gestao\\Base_Faltas_Colaboradores.xlsx')\n",
+    "gestores = pd.read_excel(r'C:\\RH_Gestao\\Gestores_Setor.xlsx')\n",
+    "\n",
+    "# ==========================\n",
+    "# TRATAMENTO\n",
+    "# ==========================\n",
+    "df = pd.merge(cadastro, ponto, left_on='ID', right_on='Id', how='inner')\n",
+    "df = df[['ID', 'Nome', 'Email', 'Setor', 'Faltas']]\n",
+    "df_final = pd.merge(df, gestores, on='Setor', how='left')\n",
+    "\n",
+    "# Somente faltosos\n",
+    "df_final = df_final[df_final['Faltas'] > 0]\n",
+    "\n",
+    "# ==========================\n",
+    "# ABRIR GMAIL\n",
+    "# ==========================\n",
+    "pyautogui.hotkey('ctrl', 't')\n",
+    "pyautogui.write('mail.google.com')\n",
+    "pyautogui.press('enter')\n",
+    "\n",
+    "time.sleep(8)\n",
+    "\n",
+    "# ==========================\n",
+    "# ENVIA PARA CADA GESTOR\n",
+    "# ==========================\n",
+    "for i in range(len(gestores)):\n",
+    "\n",
+    "    gestor = gestores.loc[i, 'Nome_Gestor']\n",
+    "    email_gestor = gestores.loc[i, 'Email_Gestor']\n",
+    "    setor = gestores.loc[i, 'Setor']\n",
+    "\n",
+    "    base_gestor = df_final[df_final['Setor'] == setor]\n",
+    "\n",
+    "    # Se não houver faltas no setor\n",
+    "    if len(base_gestor) == 0:\n",
+    "        continue\n",
+    "\n",
+    "    lista_faltas = \"\"\n",
+    "\n",
+    "    for j in range(len(base_gestor)):\n",
+    "        colaborador = base_gestor.iloc[j]['Nome']\n",
+    "        faltas = base_gestor.iloc[j]['Faltas']\n",
+    "\n",
+    "        lista_faltas += f\"{colaborador} - {faltas} falta(s)\\n\"\n",
+    "\n",
+    "    texto = f\"\"\"Prezados, bom dia!!!\n",
+    "\n",
+    "{gestor},\n",
+    "\n",
+    "Segue relatório de faltas do setor {setor}:\n",
+    "\n",
+    "{lista_faltas}\n",
+    "\n",
+    "Atenciosamente,\n",
+    "RH\n",
+    "\"\"\"\n",
+    "\n",
+    "    # Botão escrever\n",
+    "    pyautogui.click(x=41, y=174, clicks=1)\n",
+    "    time.sleep(5)\n",
+    "    pyautogui.click(x=1299, y=479, clicks=1)\n",
+    "    time.sleep(3)\n",
+    "    # Digita e-mail\n",
+    "    pyautogui.write(email_gestor)\n",
+    "    pyautogui.press('tab')\n",
+    "    pyautogui.press('tab')\n",
+    "\n",
+    "    # Assunto\n",
+    "    pyautogui.write(f'Relatório de Faltas - {setor}')\n",
+    "    pyautogui.press('tab')\n",
+    "\n",
+    "    # Corpo\n",
+    "    pyperclip.copy(texto)\n",
+    "    pyautogui.hotkey('ctrl', 'v')\n",
+    "\n",
+    "    time.sleep(2)\n",
+    "\n",
+    "    # Enviar\n",
+    "    pyautogui.hotkey('ctrl', 'enter')\n",
+    "\n",
+    "    time.sleep(5)\n",
+    "\n",
+    "print(\"Todos os e-mails foram enviados.\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.13.9"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
