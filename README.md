@@ -1,2 +1,10 @@
-# employee-absence-automation
-Automação em Python para envio automático de relatórios de faltas para gestores.
+employee-absence-automation/
+│
+├── README.md
+├── automacao_rh.py
+├── requirements.txt
+│
+├── dados_exemplo/
+│   ├── Cadastro_Colaboradores.xlsx
+│   ├── Base_Faltas_Colaboradores.xlsx
+│   └── Gestores_Setor.xlsx
